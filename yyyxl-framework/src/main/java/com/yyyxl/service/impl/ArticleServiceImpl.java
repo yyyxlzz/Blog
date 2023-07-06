@@ -3,10 +3,13 @@ package com.yyyxl.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yyyxl.constans.SystemConstants;
 import com.yyyxl.domain.ResponseResult;
 import com.yyyxl.domain.entity.Article;
+import com.yyyxl.domain.vo.HotArticleVo;
 import com.yyyxl.mapper.ArticleMapper;
 import com.yyyxl.service.ArticleService;
+import com.yyyxl.utils.BeanCopyUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,10 +23,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
          */
     @Override
     public ResponseResult hotArticleList() {
-        ResponseResult result = new ResponseResult();
+
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper();
         // 必须是正式文章
-        queryWrapper.eq(Article::getStatus,0);
+        queryWrapper.eq(Article::getStatus, SystemConstants.ARTICLE_STATUS_NORMAL);
         // 按照浏览量进行排序
         queryWrapper.orderByDesc(Article::getViewCount);
         // 最多查10条
@@ -32,7 +35,18 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         List<Article> articles = page.getRecords();
 
-        return ResponseResult.okResult(articles);
+        // bean拷贝
+        /*List<HotArticleVo> articleVos = new ArrayList<>();
+        for (Article article : articles) {
+            HotArticleVo vo = new HotArticleVo();
+            // bean 拷贝字段名字和字段类型要相同
+            BeanUtils.copyProperties(article,vo);
+            articleVos.add(vo);
+        }*/
+
+        List<HotArticleVo> articleVos = BeanCopyUtils.copyBeanList(articles, HotArticleVo.class);
+
+        return ResponseResult.okResult(articleVos);
 
     }
 }
